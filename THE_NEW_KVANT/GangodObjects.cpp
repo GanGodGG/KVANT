@@ -83,6 +83,11 @@ EngObj::~EngObj()
 
 void EngObj::Update()
 {
+	return;
+}
+
+void EngObj::Render() 
+{
 	glUseProgram(ShaderID);
 	int uni_asp = glGetUniformLocation(ShaderID, "Aspect");
 	glUniform1f(uni_asp, cam->Scr_aspect);
@@ -94,7 +99,7 @@ void EngObj::Update()
 	glUniformMatrix4fv(uni_view, 1, GL_FALSE, &(cam->view)[0][0]);
 	glUniformMatrix4fv(uni_proj, 1, GL_FALSE, &(cam->projection)[0][0]);
 
-	if (color != glm::vec3(0,0,0)) {
+	if (color != glm::vec3(0, 0, 0)) {
 		int col_uni = glGetUniformLocation(ShaderID, "COLOR_2");
 		glUniform3f(col_uni, color.x, color.y, color.z);
 	}
@@ -122,7 +127,7 @@ void EngObj::Update()
 			glUniform1f(glGetUniformLocation(ShaderID, (start + ".angle").c_str()), SpotLights[i]->angle);
 			glUniform1f(glGetUniformLocation(ShaderID, (start + ".outerAngle").c_str()), SpotLights[i]->outerangle);
 		}
-		
+
 	}
 
 	mesh->Render();
@@ -309,6 +314,11 @@ void ObjectManager::Add(G_Object* add)
 	OBJS.push_back(add);
 }
 
+void ObjectManager::Add(EngObj* add)
+{
+	RenderingObj.push_back(add);
+}
+
 void ObjectManager::UpdateAll()
 {
 	for (int i = 0; i < OBJS.size(); i++) {
@@ -320,14 +330,23 @@ void ObjectManager::UpdateAll()
 			continue;
 		}
 	}
+
+	for(int i = 0; i < RenderingObj.size(); i++) {
+		if (RenderingObj[i] != nullptr) {
+			RenderingObj[i]->Update();
+			RenderingObj[i]->Render();
+		}
+		else {
+			RenderingObj.erase(RenderingObj.begin() + i);
+			continue;
+		}
+	}
 }
 
 void ObjectManager::AddLightSrc(Light* light)
 {
-	for (const auto& obj : OBJS) {
-		if (is_convertible<G_Object*, EngObj*>(obj)) {
-
-		}
+	for (const auto& obj : RenderingObj) {
+		obj->AddLightSource(light);
 	}
 }
 

@@ -7,27 +7,27 @@
 #include "G_SHADER_INSTANCE.h"
 #include "ObjectLoader.h"
 #define Log(x) { cout << x << endl; }
-
+class EngObj;
 
 class G_Object {
 public:
 	glm::vec3 position;
 	glm::vec3 scale;
-	glm::vec3 rotation;
+	glm::vec3 rotation; 
 
 	virtual void Update();
 	virtual void Rotate(float angle, glm::vec3 rot);
 	virtual void Move(glm::vec3 move);
 };
 
-class Particle {
+class Particle : public G_Object {
 public:
 	glm::vec2 position;
 	glm::vec3 color;
 	glm::vec2 scale;
 	string particle_path;
 	Particle(glm::vec2 pos, glm::vec2 scal, glm::vec3 col, string path_tex);
-	void Update();
+	void Update() override;
 private:
 	float lifeTime;
 	unsigned int ShaderID;
@@ -83,10 +83,12 @@ public:
 class ObjectManager {
 public:
 	void Add(G_Object* add);
+	void Add(EngObj* add);
 	void UpdateAll();
 	void AddLightSrc(Light* light);
 private:
 	vector<G_Object*> OBJS;
+	vector<EngObj*> RenderingObj;
 };
 
 class ParticleManager {
@@ -157,6 +159,7 @@ public:
 	~EngObj();
 
 	void Update() override;
+	void Render();
 	void Rotate(float angle, glm::vec3 rot) override;
 	void Move(glm::vec3 move) override;
 	void Rescale(glm::vec3 scale);

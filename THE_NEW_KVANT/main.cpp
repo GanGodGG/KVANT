@@ -42,9 +42,9 @@ int main() {
 
 	EngObj test("Untitled.obj", glm::vec3(0.0f, 0.0f,0.0f), "TEST", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg", OBJMGR);
 	EngObj test2("Untitled.obj", glm::vec3(5.0f, 5.0f, 0.0f), "TEST2", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg", OBJMGR);
-	OBJMGR.AddLightSource(&mainLight);
-	OBJMGR.AddLightSource(&pointLight);
-	OBJMGR.AddLightSource(&spotLight);
+	OBJMGR.AddLightSrc(&mainLight);
+	OBJMGR.AddLightSrc(&pointLight);
+	OBJMGR.AddLightSrc(&spotLight);
 	//EngObj light("Untitled.obj", glm::vec3(0.0f, 4.0f, -5.0f), "LIGHT", &mainCam, "shader_light.vert", "shader_light.frag", glm::vec3(1,1,1), OBJMGR);
 	test.Rescale(glm::vec3(5.0f, 5.0f, 5.0f));
 	while (!glfwWindowShouldClose(window)) {
@@ -54,7 +54,7 @@ int main() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		Log(1 / deltaTime);
+		//Log(1 / deltaTime);
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, 1);
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
