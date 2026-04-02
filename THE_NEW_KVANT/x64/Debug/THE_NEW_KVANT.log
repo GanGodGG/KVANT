@@ -1,0 +1,5 @@
+﻿  main.cpp
+D:\THE_NEW_KVANT\THE_NEW_KVANT\main.cpp(54,22): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+  THE_NEW_KVANT.vcxproj -> D:\THE_NEW_KVANT\x64\Debug\THE_NEW_KVANT.exe
+  "pwsh.exe" не является внутренней или внешней
+  командой, исполняемой программой или пакетным файлом.
