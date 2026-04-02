@@ -34,17 +34,14 @@ int main() {
 	glViewport(0, 0, S_WIDTH, S_HEIGHT);
 	glm::vec3 bLightCol = glm::vec3(0.15f, 0.15f, 0.15f);
 	glm::vec3 lightCol = glm::vec3(1.0f, 1.0f, 1.0f);
-	SpotLight spotLight(mainCam.position, mainCam.forward, glm::vec3(9.0f, 0.5f, 0.5f), 1, 2);
-
 	PointLight pointLight(glm::vec3(0.0f, 4.0f, -5.0f), glm::vec3(0.5f, 0.5f, 1.0f));
-
 	DirLight mainLight(mainCam.forward, glm::vec3(1.5f, 1.5f, 1.5f));
-
+	SpotLight spot(glm::vec3(0.0f, 4.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 9.0f, 0.0f), 12.5f, 17.5f);
 	EngObj test("Untitled.obj", glm::vec3(0.0f, 0.0f,0.0f), "TEST", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg", OBJMGR);
 	EngObj test2("Untitled.obj", glm::vec3(5.0f, 5.0f, 0.0f), "TEST2", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg", OBJMGR);
 	OBJMGR.AddLightSrc(&mainLight);
 	OBJMGR.AddLightSrc(&pointLight);
-	OBJMGR.AddLightSrc(&spotLight);
+	OBJMGR.AddLightSrc(&spot);
 	//EngObj light("Untitled.obj", glm::vec3(0.0f, 4.0f, -5.0f), "LIGHT", &mainCam, "shader_light.vert", "shader_light.frag", glm::vec3(1,1,1), OBJMGR);
 	test.Rescale(glm::vec3(5.0f, 5.0f, 5.0f));
 	while (!glfwWindowShouldClose(window)) {
@@ -71,8 +68,8 @@ int main() {
 			mainCam.Move(Camera::DOWNWARD, deltaTime);
 		//test.Rotate((float)glfwGetTime(), glm::vec3(1.0f, 0.25f, 0.11f));
 		//light.Move(glm::vec3(0.0001f, 0.0f, 0.0f));
-		spotLight.pos = mainCam.position + mainCam.forward;
-		spotLight.spotdir = mainCam.forward * glm::vec3(3);
+		spot.spotdir = mainCam.forward;
+		spot.pos = mainCam.position;
 		OBJMGR.UpdateAll();
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -58,14 +58,18 @@ void main()
 
     //all spots:
     for(int i = 0; i < MAX_LIGHT_COUNT; ++i){
-        vec3 DIR = sl[i].position - GlobalPos;
-        float dis = length(sl[i].position-GlobalPos);
-        float phi = max(0.0f, dot(normalize(sl[i].spotDir), -DIR));
-        float ins = clamp((sl[i].outerAngle - phi) / (sl[i].outerAngle - sl[i].angle), 0.0f, 1.0f);
+        vec3 Len = sl[i].position - GlobalPos;
+        float dis = length(Len);
+        vec3 LookAt = Len / dis;
+
+        float theta = dot(LookAt, normalize(-sl[i].spotDir));
+
+        float phi = sl[i].angle - sl[i].outerAngle;
+        float ins = clamp((theta - sl[i].outerAngle ) / phi, 0.0f, 1.0f);
         float a = 1 / (1.5f + 0.5f*dis + 0.2f * dis * dis);
 
-        vec3 _diffuse = CalcDiffLight(sl[i].color, DIR, norm);
-        vec3 _specs = CalcSpec(sl[i].color, DIR, norm, viewDir);
+        vec3 _diffuse = CalcDiffLight(sl[i].color, Len, norm);
+        vec3 _specs = CalcSpec(sl[i].color, Len, norm, viewDir);
         finalResult += a * ins * (_diffuse+_specs) * Color;
     }
 
