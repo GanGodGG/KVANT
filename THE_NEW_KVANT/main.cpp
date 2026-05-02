@@ -3,14 +3,24 @@
 #include <iostream>	
 #include "GangodObjects.h"
 #include "G_SHADER_INSTANCE.h"
+#include <thread>
+#include <chrono>
 using namespace std;
+using namespace chrono;
 
 static int S_WIDTH = 980;
 static int S_HEIGHT = 980;
-ObjectManager OBJMGR;
+
+
+
 float sensitivity = 0.25f;
 float deltaTime;
-Camera mainCam(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), (float)S_WIDTH / S_HEIGHT, 120.0f, 0.1f, 100.0f, OBJMGR);
+Camera mainCam(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), (float)S_WIDTH / S_HEIGHT, 120.0f, 0.1f, 100.0f);
+
+float Aspect::aspect = (float)S_WIDTH / S_HEIGHT;
+glm::mat4 Aspect::view = mainCam.view;
+glm::mat4 Aspect::projection = mainCam.projection;
+
 void RotateCam(GLFWwindow* window, double x, double y);
 int main() {
 	float lastFrame = 0.0f;
@@ -29,7 +39,7 @@ int main() {
 		return -1;
 	}
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, RotateCam);
+		glfwSetCursorPosCallback(window, RotateCam);
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, S_WIDTH, S_HEIGHT);
 	glm::vec3 bLightCol = glm::vec3(0.15f, 0.15f, 0.15f);
@@ -37,13 +47,22 @@ int main() {
 	PointLight pointLight(glm::vec3(0.0f, 4.0f, -5.0f), glm::vec3(0.5f, 0.5f, 1.0f));
 	DirLight mainLight(mainCam.forward, glm::vec3(1.5f, 1.5f, 1.5f));
 	SpotLight spot(glm::vec3(0.0f, 4.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 9.0f, 0.0f), 12.5f, 17.5f);
-	EngObj test("Untitled.obj", glm::vec3(0.0f, 0.0f,0.0f), "TEST", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg", OBJMGR);
-	EngObj test2("Untitled.obj", glm::vec3(5.0f, 5.0f, 0.0f), "TEST2", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg", OBJMGR);
-	OBJMGR.AddLightSrc(&mainLight);
-	OBJMGR.AddLightSrc(&pointLight);
-	OBJMGR.AddLightSrc(&spot);
+	EngObj test("Untitled.obj", glm::vec3(0.0f, 8.0f,0.0f), "TEST", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg");
+	EngObj test2("Untitled.obj", glm::vec3(0.0f, 0.0f, 0.0f), "TEST2", &mainCam, "shader.vert", "shader.frag", "tetoo.jpg");
+	ObjectManager::AddLightSrc(&mainLight);
+	ObjectManager::AddLightSrc(&pointLight);
+	ObjectManager::AddLightSrc(&spot);
+
+	
 	//EngObj light("Untitled.obj", glm::vec3(0.0f, 4.0f, -5.0f), "LIGHT", &mainCam, "shader_light.vert", "shader_light.frag", glm::vec3(1,1,1), OBJMGR);
-	test.Rescale(glm::vec3(5.0f, 5.0f, 5.0f));
+	//test.Rescale(glm::vec3(5.0f, 5.0f, 5.0f));
+	test.AddComponent<PhysBody>();
+	//mainCam.AddComponent<PhysBody>();
+	mainCam.AddComponent<BoxCollider>();
+	test.AddComponent<BoxCollider>();
+	test2.AddComponent<BoxCollider>();
+
+	test.Rotate(6, glm::vec3(0, 76, 0));
 	while (!glfwWindowShouldClose(window)) {
 
 		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
@@ -68,15 +87,19 @@ int main() {
 			mainCam.Move(Camera::DOWNWARD, deltaTime);
 		//test.Rotate((float)glfwGetTime(), glm::vec3(1.0f, 0.25f, 0.11f));
 		//light.Move(glm::vec3(0.0001f, 0.0f, 0.0f));
-		spot.spotdir = mainCam.forward;
-		spot.pos = mainCam.position;
-		OBJMGR.UpdateAll();
+		ObjectManager::UpdateAll();
+		ObjectManager::UpdateAllFix(deltaTime);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		Aspect::ChangeView(mainCam.view);
+		Aspect::ChangeProjection(mainCam.projection);
+
+		this_thread::sleep_for(0.16ms);
 	}
 	test.~EngObj();
 	glfwTerminate();
-	return glGetError();
+	return 0;
 }
 
 void RotateCam(GLFWwindow* window, double xpos, double ypos) {

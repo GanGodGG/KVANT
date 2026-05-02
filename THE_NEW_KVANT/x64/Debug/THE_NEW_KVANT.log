@@ -1,5 +1,13 @@
-﻿  main.cpp
-D:\THE_NEW_KVANT\THE_NEW_KVANT\main.cpp(51,22): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+﻿  GangodObjects.cpp
+D:\THE_NEW_KVANT\THE_NEW_KVANT\GangodObjects.h(263,36): warning C4267: return: преобразование из "size_t" в "int"; возможна потеря данных
+  (компиляция исходного файла "GangodObjects.cpp")
+  
+  main.cpp
+D:\THE_NEW_KVANT\THE_NEW_KVANT\GangodObjects.h(263,36): warning C4267: return: преобразование из "size_t" в "int"; возможна потеря данных
+  (компиляция исходного файла "main.cpp")
+  
+D:\THE_NEW_KVANT\THE_NEW_KVANT\main.cpp(70,22): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+  Создание кода...
   THE_NEW_KVANT.vcxproj -> D:\THE_NEW_KVANT\x64\Debug\THE_NEW_KVANT.exe
   "pwsh.exe" не является внутренней или внешней
   командой, исполняемой программой или пакетным файлом.

@@ -36,6 +36,7 @@ public:
 	~Mesh();
 
 	void Render();
+	void LineRender();
 private:
 	unsigned int VBO, VAO, EBO;
 

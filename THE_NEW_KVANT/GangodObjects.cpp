@@ -1,7 +1,14 @@
 #include "GangodObjects.h"
+std::vector<G_Object*> ObjectManager::OBJS;
+std::vector<EngObj*> ObjectManager::RenderingObj;
 
-EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, ObjectManager& ObjMGR)
+
+
+
+EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam)
 {
+	ObjectManager::Add(this);
+
 	this->position = __position;
 	this->name = __name;
 	this->cam = cam;
@@ -14,12 +21,12 @@ EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* c
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(__position));
 	OL.LoadModel(ObjectPath, *mesh);
 	mesh->Construct();
-
-	ObjMGR.Add(this);
 }
 
-EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, string VertShader, string FragShader, ObjectManager& ObjMGR)
+EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, string VertShader, string FragShader) 
 {
+	ObjectManager::Add(this);
+
 	this->position = __position;
 	this->name = __name;
 	this->cam = cam;
@@ -33,12 +40,12 @@ EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* c
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(__position));
 	OL.LoadModel(ObjectPath, *mesh);
 	mesh->Construct();
-
-	ObjMGR.Add(this);
 }
 
-EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, string VertShader, string FragShader, string TexPath, ObjectManager& ObjMGR)
+EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, string VertShader, string FragShader, string TexPath)
 {
+	ObjectManager::Add(this);
+
 	this->position = __position;
 	this->name = __name;
 	this->cam = cam;
@@ -51,12 +58,12 @@ EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* c
 	this->model = glm::translate(glm::mat4(1.0f), glm::vec3(__position));
 	OL.LoadModel(ObjectPath, *mesh);
 	mesh->Construct();
-
-	ObjMGR.Add(this);
 }
 
-EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, string VertShader, string FragShader, glm::vec3 color, ObjectManager& ObjMGR)
+EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* cam, string VertShader, string FragShader, glm::vec3 color)
 {
+	ObjectManager::Add(this);
+
 	this->position = __position;
 	this->name = __name;
 	this->cam = cam;
@@ -70,7 +77,6 @@ EngObj::EngObj(string ObjectPath, glm::vec3 __position, string __name, Camera* c
 	OL.LoadModel(ObjectPath, *mesh);
 	mesh->Construct();
 	this->color = color;
-	ObjMGR.Add(this);
 }
 
 EngObj::~EngObj()
@@ -83,8 +89,14 @@ EngObj::~EngObj()
 
 void EngObj::Update()
 {
+	for (auto& comp : components) {
+		comp->Update();
+	}
+	model = glm::scale(model, this->scale);
 	return;
 }
+
+
 
 void EngObj::Render() 
 {
@@ -137,8 +149,39 @@ void EngObj::Rotate(float angle, glm::vec3 rot)
 {
 	this->angle += angle;
 	rotation += rot;
-	model = glm::rotate(glm::mat4(1.0f), angle, rotation);
+	model = glm::rotate(glm::mat4(1.0f), this->angle, rotation);
 }
+
+template<typename T>
+T* G_Object::AddComponent()
+{
+	Log("Added component.");
+    static_assert(std::is_base_of<Component, T>::value, "GComponent error! AddComponent<T>, where [T] MUST inherit from [Component]");
+    T* comp = new T();
+	comp->AddIns(this);
+    components.push_back(comp);
+    return comp;
+}
+
+template<typename T>
+T* G_Object::GetComponent()
+{
+	for(auto& comp : components) {
+		T* casted = dynamic_cast<T*>(comp);
+		
+		if (casted) {
+
+			return dynamic_cast<T*>(comp);
+		}
+	}
+	return nullptr;
+}
+
+template PhysBody* G_Object::AddComponent<PhysBody>();
+template BoxCollider* G_Object::AddComponent<BoxCollider>();
+
+template PhysBody* G_Object::GetComponent<PhysBody>();
+template BoxCollider* G_Object::GetComponent<BoxCollider>();
 
 void EngObj::Move(glm::vec3 move)
 {
@@ -149,7 +192,7 @@ void EngObj::Move(glm::vec3 move)
 void EngObj::Rescale(glm::vec3 scale)
 {
 	this->scale = scale;
-	model = glm::scale(glm::mat4(1), this->scale);
+
 }
 
 void EngObj::AddLightSource(Light* light)
@@ -170,18 +213,16 @@ void EngObj::AddLightSource(Light* light)
 	}
 }
 
-Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, ObjectManager& ObjMGR)
+Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect)
 {
 	this->up = UP;
 	this->forward = forward;
 	this->Scr_aspect = Aspect;
 
 	view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-	ObjMGR.Add(this);
 }
 
-Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, ObjectManager& ObjMGR) 
+Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos) 
 {
 	this->up = UP;
 	this->forward = forward;
@@ -189,11 +230,9 @@ Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, Obj
 	this->position = pos;
 
 	view = glm::lookAt(this->position, pos + forward, UP);
-
-	ObjMGR.Add(this);
 }
 
-Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, float FOV, ObjectManager& ObjMGR)
+Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, float FOV)
 {
 	this->up = UP;
 	this->forward = forward;
@@ -201,11 +240,9 @@ Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, float FOV, ObjectM
 
 	view = glm::lookAt(this->position, glm::vec3(0.0f, 0.0f, 0.0f) + forward, UP);
 	projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
-
-	ObjMGR.Add(this);
 }
 
-Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, float FOV, ObjectManager& ObjMGR) 
+Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, float FOV) 
 {
 	this->up = UP;
 	this->forward = forward;
@@ -214,11 +251,9 @@ Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, flo
 
 	view = glm::lookAt(this->position, pos + forward, UP);
 	projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
-
-	ObjMGR.Add(this);
 }
 
-Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, float FOV, float minDepth, float MaxDepth, ObjectManager& ObjMGR) 
+Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, float FOV, float minDepth, float MaxDepth) 
 {
 	this->up = UP;
 	this->forward = forward;
@@ -226,11 +261,9 @@ Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, float FOV, float m
 
 	view = glm::lookAt(this->position, glm::vec3(0.0f, 0.0f, 0.0f) + forward, UP);
 	projection = glm::perspective(glm::radians(FOV), Aspect, minDepth, MaxDepth);
-
-	ObjMGR.Add(this);
 }
 
-Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, float FOV, float minDepth, float MaxDepth, ObjectManager& ObjMGR) 
+Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, float FOV, float minDepth, float MaxDepth) 
 {
 	this->up = UP;
 	this->forward = forward;
@@ -239,13 +272,18 @@ Camera::Camera(glm::vec3 UP, glm::vec3 forward, float Aspect, glm::vec3 pos, flo
 
 	view = glm::lookAt(this->position, pos + forward, UP);
 	projection = glm::perspective(glm::radians(FOV), Aspect, minDepth, MaxDepth);
-
-	ObjMGR.Add(this);
 }
 
 void Camera::Update()
 {
 	this->view = glm::lookAt(this->position, this->position + this->forward, this->up);
+}
+
+
+
+void Component::AddIns(G_Object *obj)
+{
+	instance = obj;
 }
 
 void Particle::Update() {
@@ -256,6 +294,14 @@ void G_Object::Update() {
 	return;
 }
 
+void G_Object::OnFixUpadte(float deltatime)
+{
+	for (auto& comp : components) {
+		comp->OnFix(deltatime);
+	}
+}
+
+
 void G_Object::Rotate(float angle, glm::vec3 rot)
 {
 }
@@ -264,6 +310,7 @@ void G_Object::Move(glm::vec3 move)
 {
 	position += move;
 }
+
 
 void Camera::Move(Camera_Movement direction, float deltaTime)
 {
@@ -317,12 +364,14 @@ void ObjectManager::Add(G_Object* add)
 void ObjectManager::Add(EngObj* add)
 {
 	RenderingObj.push_back(add);
+	OBJS.push_back(add);
 }
 
 void ObjectManager::UpdateAll()
 {
 	for (int i = 0; i < OBJS.size(); i++) {
 		if (OBJS[i] != nullptr) {
+			
 			OBJS[i]->Update();
 		}
 		else {
@@ -333,12 +382,20 @@ void ObjectManager::UpdateAll()
 
 	for(int i = 0; i < RenderingObj.size(); i++) {
 		if (RenderingObj[i] != nullptr) {
-			RenderingObj[i]->Update();
 			RenderingObj[i]->Render();
 		}
 		else {
 			RenderingObj.erase(RenderingObj.begin() + i);
 			continue;
+		}
+	}
+}
+
+void ObjectManager::UpdateAllFix(float delta)
+{
+	for (int i = 0; i < OBJS.size(); i++) {
+		if (OBJS[i] != nullptr) {
+			OBJS[i]->OnFixUpadte(delta);
 		}
 	}
 }
@@ -359,4 +416,170 @@ Particle::Particle(glm::vec2 pos, glm::vec2 scal, glm::vec3 col, string path_tex
 	}
 
 
+}
+
+void Component::Update() {
+}
+
+void Component::OnFix(float deltatime) {
+}
+
+void PhysBody::Update(){
+}
+
+void PhysBody::OnFix(float deltatime)
+{
+	Velocity.y += (deltatime / 100) * -g;
+	Velocity.y *= (1.0f - (drag * deltatime/100));
+
+	if(Collider* hit = instance->GetComponent<Collider>()) {
+		if (hit->CollisionDetect(Velocity, info)) {
+			Velocity.y = 0;
+		}
+	}
+
+	instance->Move(Velocity);
+}
+
+
+Collider::Collider()
+{
+}
+
+bool Collider::CollisionDetect(glm::vec3 dir, glm::vec3& normal) {
+	SimpleX simplex;
+	pos = instance->position + offset;
+	model = glm::translate(glm::mat4(1.0f), pos);
+	model = glm::scale(model, size);
+	for (auto& obj : ObjectManager::GetInstance().GetAllObjects()) {
+		if (auto other = obj->GetComponent<Collider>()) {
+			glm::vec3 dir = other->pos - this->pos;
+			simplex.push_front(GetSupport(this, other, dir));
+			dir = -simplex[0];
+			glm::vec3 A = GetSupport(this, other, dir);
+
+			// Если новая точка не перешла за (0,0,0), столкновения нет
+			if (glm::dot(A, dir) < 0) return false;
+
+			simplex.push_front(A);
+
+			// 4. Функция, которая проверяет симплекс и обновляет 'dir'
+			if (NextSimplex(simplex, dir)) {
+				Log("Detected collision");
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+BoxCollider::BoxCollider()
+{
+}
+
+glm::vec3 BoxCollider::SupportFunc(glm::vec3 direction)
+{
+	glm::vec3 localDir = glm::inverse(glm::mat3(model)) * direction;
+	return model * glm::vec4(
+		(localDir.x > 0 ? size.x : -size.x) * 0.5f,
+		(localDir.y > 0 ? size.y : -size.y) * 0.5f,
+		(localDir.z > 0 ? size.z : -size.z) * 0.5f,
+		1
+	);
+}
+
+glm::vec3 Collider::GetSupport(Collider* a, Collider* b, glm::vec3 direction)
+{
+	return a->SupportFunc(direction) - b->SupportFunc(direction);
+}
+
+
+bool Collider::Line(SimpleX& points, glm::vec3& direction)
+{
+	glm::vec3 a = points[0];
+	glm::vec3 b = points[1];
+
+	glm::vec3 ab = b - a;
+	glm::vec3 ao = -a;
+
+	if (SameDirection(ab, ao)) {
+		direction = glm::cross(glm::cross(ab, ao), ab);
+	}
+	else {
+		points.pts = { a }; // Точка B не нужна
+		direction = ao;
+	}
+	return false; // Коллизия еще не подтверждена
+}
+
+bool Collider::Triangle(SimpleX& points, glm::vec3& direction)
+{
+	glm::vec3 a = points[0];
+	glm::vec3 b = points[1];
+	glm::vec3 c = points[2];
+
+	glm::vec3 ab = b - a;
+	glm::vec3 ac = c - a;
+	glm::vec3 ao = -a;
+
+	glm::vec3 abc = glm::cross(ab, ac);
+
+	if (SameDirection(glm::cross(abc, ac), ao)) {
+		if (SameDirection(ac, ao)) {
+			points.pts = { a, c };
+			direction = glm::cross(glm::cross(ac, ao), ac);
+		}
+		else {
+			points = { a, b };
+			return Line(points, direction);
+		}
+	}
+	else {
+		if (SameDirection(glm::cross(ab, abc), ao)) {
+			points = { a, b };
+			return Line(points, direction);
+		}
+		else {
+			if (SameDirection(abc, ao)) {
+				direction = abc;
+			}
+			else {
+				points.pts = { a, c, b }; // Меняем порядок для правильной нормали
+				direction = -abc;
+			}
+		}
+	}
+	return false;
+}
+
+bool Collider::Tetrahedron(SimpleX& points, glm::vec3& direction)
+{
+	glm::vec3 a = points[0];
+	glm::vec3 b = points[1];
+	glm::vec3 c = points[2];
+	glm::vec3 d = points[3];
+
+	glm::vec3 ab = b - a;
+	glm::vec3 ac = c - a;
+	glm::vec3 ad = d - a;
+	glm::vec3 ao = -a;
+
+	glm::vec3 abc = glm::cross(ab, ac);
+	glm::vec3 acd = glm::cross(ac, ad);
+	glm::vec3 adb = glm::cross(ad, ab);
+
+	if (SameDirection(abc, ao)) {
+		points.pts = { a, b, c };
+		return Triangle(points, direction);
+	}
+	if (SameDirection(acd, ao)) {
+		points.pts = { a, c, d };
+		return Triangle(points, direction);
+	}
+	if (SameDirection(adb, ao)) {
+		points.pts = { a, d, b };
+		return Triangle(points, direction);
+	}
+
+	return true; // Начало координат внутри всех граней!
 }

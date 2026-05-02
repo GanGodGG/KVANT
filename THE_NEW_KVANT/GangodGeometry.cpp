@@ -33,6 +33,13 @@ void Mesh::Render()
 	glBindVertexArray(0);
 }
 
+void Mesh::LineRender()
+{
+	glBindVertexArray(VAO);
+	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, (void*)0);
+	glBindVertexArray(0);
+}
+
 void Mesh::Construct()
 {
 	glGenBuffers(1, &VBO);
